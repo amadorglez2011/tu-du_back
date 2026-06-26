@@ -1,19 +1,15 @@
-    import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
+const connectDB = async () => {
+  // Si ya está conectado, reutiliza la conexión activa
+  if (mongoose.connection.readyState >= 1) return;
 
-let cached = global._mongooseConn;
-if (!cached) cached = global._mongooseConn = {conn: null, promise:null};
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("Conectado exitosamente a MongoDB Atlas");
+  } catch (error) {
+    console.error("Error conectando a la base de datos:", error);
+  }
+};
 
-
-
-export async function connectToDB(){
-    if(cached.conn) return cached.conn;
-    if(!cached.promise){
-        const {MONGO_URI} = process.env;
-        if(!MONGO_URI) throw new Error('Por favro define la variable de entorno MONGO_URI');
-        cached.promise = mongoose.connect(MONGO_URI, {dbName: "BackPWA"})
-            .then((m) => m.connection);
-    }
-    cached.conn = await cached.promise;
-    return cached.conn;
-}
+export default connectDB;
