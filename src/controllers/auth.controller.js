@@ -26,7 +26,7 @@ export async function register(req, res) {
 
         // Generar Token JWT
         const token = jwt.sign(
-            { id: user.id }, 
+            { id: user.id, tokenVersion: user.tokenVersion }, 
             process.env.JWT_SECRET || 'changeme', 
             { expiresIn: '10d' }
         );
@@ -66,7 +66,7 @@ export async function login(req, res) {
 
         // Generar Token JWT
         const token = jwt.sign(
-            { id: user.id }, 
+            { id: user.id, tokenVersion: user.tokenVersion }, 
             process.env.JWT_SECRET || 'changeme', 
             { expiresIn: '10d' }
         ); 
@@ -93,6 +93,18 @@ export async function profile(req, res) {
 
         const user = await User.findById(req.userId).select('_id name email');
         return res.json({ user });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ message: "Error en el servidor, BROTHER." });
+    }
+}
+
+// 4. CERRAR SESIÓN EN TODOS LOS DISPOSITIVOS
+
+export async function logoutAll(req, res) {
+    try {
+        await User.findByIdAndUpdate(req.userId, { $inc: { tokenVersion: 1 } });
+        return res.json({ message: "Sesión cerrada en todos los dispositivos, BROTHER." });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ message: "Error en el servidor, BROTHER." });
