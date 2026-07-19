@@ -91,7 +91,7 @@ export async function login(req, res) {
 export async function profile(req, res) {
     try {
 
-        const user = await User.findById(req.userId).select('_id name email');
+        const user = await User.findById(req.userId).select('_id name email createdAt avatar');
         return res.json({ user });
     } catch (e) {
         console.error(e);
@@ -105,6 +105,51 @@ export async function logoutAll(req, res) {
     try {
         await User.findByIdAndUpdate(req.userId, { $inc: { tokenVersion: 1 } });
         return res.json({ message: "Sesión cerrada en todos los dispositivos, BROTHER." });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ message: "Error en el servidor, BROTHER." });
+    }
+}
+
+// 5. ACTUALIZAR PERFIL (nombre, correo, contraseña, foto)
+
+export async function updateProfile(req, res) {
+    try {
+        const { name, email, password, avatar } = req.body;
+        const update = {};
+
+        if (name && name.trim()) {
+            update.name = name.trim();
+        }
+
+        if (email && email.trim()) {
+            const normalizedEmail = email.trim().toLowerCase();
+            const exists = await User.findOne({ email: normalizedEmail, _id: { $ne: req.userId } });
+            if (exists) {
+                return res.status(409).json({ message: "Ese correo ya está en uso, BROTHER." });
+            }
+            update.email = normalizedEmail;
+        }
+
+        if (avatar) {
+            update.avatar = avatar; // string base64 (data URI) ya redimensionada desde el frontend
+        }
+
+        if (password && password.trim()) {
+            if (password.trim().length < 6) {
+                return res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres." });
+            }
+            update.password = await bcrypt.hash(password.trim(), 10);
+        }
+
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ message: "No hay cambios para guardar." });
+        }
+
+        const user = await User.findByIdAndUpdate(req.userId, update, { new: true })
+            .select('_id name email createdAt avatar');
+
+        return res.json({ user });
     } catch (e) {
         console.error(e);
         return res.status(500).json({ message: "Error en el servidor, BROTHER." });
