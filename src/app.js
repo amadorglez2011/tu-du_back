@@ -3,6 +3,7 @@ import morgan from "morgan";
 import cors from "cors";
 import authRoutes from "../src/routers/auth.routers.js";
 import taskRoutes from "../src/routers/task.routers.js";
+import pushRoutes from "../src/routers/push.routers.js";
 import connectToDB from "./db/connect.js";
 
 const app = express();
@@ -25,5 +26,6 @@ app.use(async (_req, _res, next) => {
  app.get("/", (_req, res) => res.json({ok: true, name: "todo-pwa-api" }));
  app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/push", pushRoutes);
 
 export default app;
