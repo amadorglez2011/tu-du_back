@@ -18,6 +18,14 @@ password: {
     type: String,
     required: true
 },
+securityQuestion: {
+    type: String,
+    required: true
+},
+securityAnswer: {
+    type: String,
+    required: true
+},
 tokenVersion: {
     type: Number,
     default: 0
